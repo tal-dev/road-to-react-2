@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import './App.css';
 import Stories from './components/Stories'
 import Input from './components/Input'
@@ -11,10 +11,16 @@ function App() {
 
   const storiesReducer = (state, action) => {
     switch(action.type) {
+      case "INIT_FETCH_STORIES":
+        return {
+          ...state,
+          isLoading: true
+        }
       case "SET_STORIES":
         return {
           ...state,
-          data: action.payload
+          data: action.payload,
+          isLoading: false
         }
       case "REMOVE_STORY":
         return {
@@ -23,21 +29,37 @@ function App() {
         }
     }
   }
-
-  const handleFetchStories = useCallback(() => {
-      fetchData(`${api}${searchTerm}`)
-      .then(data => {
-        dispatchStories({
-          type: "SET_STORIES",
-          payload: data
-        })
-      })
-  })
   
   const [ searchTerm, setSearchTerm ] = useSemiPersistenseState()
   const [ stories, dispatchStories ] = useReducer(storiesReducer, {
     data: [], isLoading: false
   })
+  const [ url, setUrl ] = useState(`${api}${searchTerm}`)
+
+  const handleFetchStories = useCallback(() => {
+    fetchData(url)
+    .then(data => {
+      dispatchStories({
+        type: "SET_STORIES",
+        payload: data
+      })
+    })
+}, [url])
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value)
+  }
+
+  const deleteStory = (item) => {
+    dispatchStories({
+      type: "REMOVE_STORY",
+      payload: item
+    })
+  }
+
+  const handleSearchSubmit = () => {
+    setUrl(`${api}${searchTerm}`)
+  }
 
   useEffect(() => {
     if(searchTerm === '') return
@@ -53,24 +75,14 @@ function App() {
 
   useEffect(() => {
     handleFetchStories()
-  }, [searchTerm])
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value)
-  }
-
-  const deleteStory = (item) => {
-    dispatchStories({
-      type: "REMOVE_STORY",
-      payload: item
-    })
-  }
+  }, [handleFetchStories])
 
   return (
     <div className="App">
       <h1>Hacker news</h1>
       <Input onChange={handleSearch} searchTerm={searchTerm}/>
-      {stories.data.isLoading ? 'Loading...' : <Stories stories={stories.data} onStoryRemove={deleteStory}/>}
+      <button onClick={handleSearchSubmit}>Submit</button>
+      {stories.isLoading ? 'Loading...' : <Stories stories={stories.data} onStoryRemove={deleteStory}/>}
     </div>
   );
 }
