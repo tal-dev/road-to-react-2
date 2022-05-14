@@ -1,9 +1,15 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 const useSemiPersistenseState = () => {
+    const isMounted = useRef(false)
     const [searchTerm, setSearchTerm] = useState(localStorage.getItem("search"))
     useEffect(() => {
-        localStorage.setItem("search", searchTerm)
+        if(!isMounted.current) {
+            isMounted.current = true
+        }
+        else {
+            localStorage.setItem("search", searchTerm)
+        }
     }, [searchTerm])
 
     return [searchTerm, setSearchTerm]

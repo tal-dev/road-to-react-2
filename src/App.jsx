@@ -50,12 +50,12 @@ function App() {
     setSearchTerm(e.target.value)
   }
 
-  const deleteStory = (item) => {
+  const deleteStory = useCallback((item) => {
     dispatchStories({
       type: "REMOVE_STORY",
       payload: item
     })
-  }
+  }, [])
 
   const handleSearchSubmit = () => {
     setUrl(`${api}${searchTerm}`)
