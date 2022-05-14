@@ -1,90 +1,85 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState, Component } from 'react';
 import './App.css';
 import Stories from './components/Stories'
 import Input from './components/Input'
 import fetchData from './utilities/fetchData'
 import useSemiPersistenseState from './hooks/useSemiPersistenseState'
+import axios from 'axios';
+import LoadingIcon from './components/LoadingIcon';
 
 const api = "https://hn.algolia.com/api/v1/search?query="
 
-function App() {
+class App extends Component {
 
-  const storiesReducer = (state, action) => {
-    switch(action.type) {
-      case "INIT_FETCH_STORIES":
-        return {
-          ...state,
-          isLoading: true
-        }
-      case "SET_STORIES":
-        return {
-          ...state,
-          data: action.payload,
-          isLoading: false
-        }
-      case "REMOVE_STORY":
-        return {
-          ...state,
-          data: state.data.filter(item => item.objectID !== action.payload.objectID)
-        }
+  constructor() {
+    super()
+    this.state = {
+      stories: [],
+      isLoading: false,
+      searchTerm: localStorage.getItem("search"),
+      url: api
     }
   }
-  
-  const [ searchTerm, setSearchTerm ] = useSemiPersistenseState()
-  const [ stories, dispatchStories ] = useReducer(storiesReducer, {
-    data: [], isLoading: false
-  })
-  const [ url, setUrl ] = useState(`${api}${searchTerm}`)
 
-  const handleFetchStories = useCallback(() => {
-    fetchData(url)
+  componentDidMount() {
+    this.setState({isLoading: true})
+    setTimeout(() => {
+      this.setState({isLoading: false})
+    }, 3000)
+
+    axios
+    .get(this.state.url)
     .then(data => {
-      dispatchStories({
-        type: "SET_STORIES",
-        payload: data
+      this.setState({
+        stories: data.data.hits
       })
     })
-}, [url])
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value)
+    // this.setState({isLoading: false})
   }
 
-  const deleteStory = useCallback((item) => {
-    dispatchStories({
-      type: "REMOVE_STORY",
-      payload: item
-    })
-  }, [])
-
-  const handleSearchSubmit = () => {
-    setUrl(`${api}${searchTerm}`)
-  }
-
-  useEffect(() => {
-    if(searchTerm === '') return
-
-    fetchData(`${api}${searchTerm}`)
-    .then(data => {
-      dispatchStories({
-        type: "SET_STORIES",
-        payload: data
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.url !== this.state.url) {
+      axios
+      .get(this.state.url)
+      .then(data => {
+      this.setState({
+        stories: data.data.hits
       })
     })
-  }, [])
+    this.setState({isLoading: false})
+    }
+  }
 
-  useEffect(() => {
-    handleFetchStories()
-  }, [handleFetchStories])
+  deleteStory = (item) => {
+    const updatedList = this.state.stories.filter(story => story.objectID !== item.objectID)
+    this.setState({stories: updatedList})
+  }
 
-  return (
-    <div className="App">
-      <h1>Hacker news</h1>
-      <Input onChange={handleSearch} searchTerm={searchTerm}/>
-      <button onClick={handleSearchSubmit}>Submit</button>
-      {stories.isLoading ? 'Loading...' : <Stories stories={stories.data} onStoryRemove={deleteStory}/>}
-    </div>
-  );
+  handleSearch = (e) => {
+    this.setState({
+      searchTerm: e.target.value
+    })
+    localStorage.setItem("search", e.target.value)
+  }
+
+  handleSearchSubmit = () => {
+    this.setState({
+      url: `${api}${this.state.searchTerm}`
+    })
+  }
+
+  render() {
+    
+    const {stories, isLoading, searchTerm} = this.state
+    return (
+      <div className="App">
+        <h1>Hacker news</h1>
+        <Input onChange={this.handleSearch} searchTerm={searchTerm}/>
+        <button onClick={this.handleSearchSubmit}>Submit</button>
+        {isLoading ? <LoadingIcon /> : <Stories stories={stories} onStoryRemove={this.deleteStory} />}
+      </div>
+    );
+  }
 }
 
 export default App;
