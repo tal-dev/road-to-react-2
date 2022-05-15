@@ -3,7 +3,7 @@ const StoryCard = ({story, onStoryRemove}) => {
     return (
         <div className="story-card">
             <div>
-                <strong><a href={url}>{title || "No title"}</a></strong>
+                <strong><a href={url} target="_blank">{title || "No title"}</a></strong>
                 <div>Author: {author}</div>
             </div>
             <span onClick={() => onStoryRemove(story)}>x</span>
