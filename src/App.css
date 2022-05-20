@@ -5,6 +5,7 @@
 a {
   text-decoration: none;
   color: black;
+  font-weight: 700;
 }
 
 a:hower{
@@ -16,9 +17,64 @@ a:hower{
   padding: 10px 0;
   display: flex;
   justify-content: space-between;
+  font-size: large;
 }
 
 span {
-  font-size: x-large;
+  font-size: large;
   cursor: pointer;
+}
+
+form {
+  margin-bottom: 15px;
+}
+
+.author {
+  color: green;
+  font-weight: bold;
+}
+
+.title {
+  font-size: large;
+}
+
+.user-modal {
+  padding: 10px;
+  border: 1px solid lightgray;
+  background-color: gainsboro;
+  color: black;
+  position: absolute;
+  width: 90%;
+}
+
+.modal-container {
+  position: absolute;
+  width: 90%;
+}
+
+.close {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 32px;
+  height: 32px;
+  opacity: 0.3;
+  cursor: pointer;
+}
+.close:hover {
+  opacity: 1;
+}
+.close:before, .close:after {
+  position: absolute;
+  left: 15px;
+  content: ' ';
+  height: 33px;
+  width: 2px;
+  background-color: #333;
+}
+.close:before {
+  transform: rotate(45deg);
+}
+.close:after {
+  transform: rotate(-45deg);
 }
